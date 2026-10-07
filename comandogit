@@ -1,0 +1,117 @@
+echo "# sistemaBMCM" >> README.md
+git init
+git add README.md
+git commit -m "commit alteração README.md"
+git branch -M main
+git remote add origin git@github.com:Grupo-9-PII/sistemaBMCM.git
+git push -u origin main
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+git remote add origin git@github.com:Grupo-9-PII/sistemaBMCM.git
+git branch -M main
+git push -u origin main
+
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+git rm --cached instalacao_waitress_flask.md
+git commit -m "Remove arquivo .md"
+git push origin main
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+atualização do Git
+
+git add .
+git commit -m "inclusão de novos campos data de MAtricula  e data de desligamento da banda"
+git branch -M main
+git push -u origin main
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+1. Pré-requisitos
+Instale as bibliotecas necessárias para conectar ao MySQL e gerenciar variáveis de ambiente:
+
+configurações para migração para MySQL
+
+pip install Flask Flask-MySQLdb python-dotenv
+
+2. Estrutura do Projeto
+
+/meu_projeto
+│── .env                 # Arquivo para armazenar as credenciais
+│── app.py               # Arquivo principal do Flask
+│── config.py            # Carregamento de configuração
+│── templates/
+│   └── settings.html    # Página de configuração
+
+
+3. Configuração (.env e config.py)
+Utilize um arquivo .env para manter as credenciais seguras e separadas do código.
+Arquivo .env: 
+
+MYSQL_HOST=localhost
+MYSQL_USER=root
+MYSQL_PASSWORD=sua_senha
+MYSQL_DB=seu_banco
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Arquivo config.py:
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Config:
+    MYSQL_HOST = os.getenv('MYSQL_HOST')
+    MYSQL_USER = os.getenv('MYSQL_USER')
+    MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+    MYSQL_DB = os.getenv('MYSQL_DB')
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+4. Aplicação Flask (app.py)
+Neste arquivo, criaremos as rotas para ler e atualizar as configurações.
+
+
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_mysqldb import MySQL
+from config import Config
+import os
+
+app = Flask(__name__)
+app.config.from_object(Config)
+app.secret_key = 'supersecretkey' # Necessário para flash messages
+
+mysql = MySQL(app)
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if request.method == 'POST':
+        # Receber dados do formulário
+        host = request.form['host']
+        user = request.form['user']
+        password = request.form['password']
+        db = request.form['db']
+        
+        # Atualizar arquivo .env (forma simples)
+        with open('.env', 'w') as f:
+            f.write(f"MYSQL_HOST={host}\n")
+            f.write(f"MYSQL_USER={user}\n")
+            f.write(f"MYSQL_PASSWORD={password}\n")
+            f.write(f"MYSQL_DB={db}\n")
+            
+        flash('Configurações atualizadas! Reinicie a aplicação.', 'success')
+        return redirect(url_for('settings'))
+    
+    # GET: Exibir configurações atuais
+    return render_template('settings.html', config=app.config)
+
+if __name__ == '__main__':
+    app.run(debug=True)

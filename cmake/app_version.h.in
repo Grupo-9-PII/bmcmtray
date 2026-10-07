@@ -1,0 +1,6 @@
+#pragma once
+
+inline constexpr int APP_VERSION_MAJOR = @PROJECT_VERSION_MAJOR@;
+inline constexpr int APP_VERSION_UPDATE = @PROJECT_VERSION_MINOR@;
+inline constexpr int APP_VERSION_COUNT = @PROJECT_VERSION_PATCH@;
+inline constexpr char APP_VERSION_STRING[] = "@PROJECT_VERSION@";

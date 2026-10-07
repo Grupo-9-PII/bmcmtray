@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsDialog</class>
+ <widget class="QDialog" name="SettingsDialog">
+  <property name="windowTitle">
+   <string>Configurações do BMCM Tray Launcher</string>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>620</width>
+    <height>520</height>
+   </size>
+  </property>
+  <layout class="QVBoxLayout" name="dialogLayout">
+   <item>
+    <widget class="QLabel" name="titleLabel">
+     <property name="text">
+      <string>Configuração do ambiente BMCM</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-size: 18px; font-weight: 600;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="settingsFormLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="pythonExecutableLabel">
+       <property name="text">
+        <string>Executável Python</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <layout class="QHBoxLayout" name="pythonPathLayout">
+       <item>
+        <widget class="QLineEdit" name="pythonExecutableEdit"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="browsePythonButton">
+         <property name="text">
+          <string>Procurar...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="workingDirectoryLabel">
+       <property name="text">
+        <string>Diretório de trabalho</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <layout class="QHBoxLayout" name="workingDirectoryLayout">
+       <item>
+        <widget class="QLineEdit" name="workingDirectoryEdit"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="browseWorkingDirectoryButton">
+         <property name="text">
+          <string>Procurar...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="serverArgumentsLabel">
+       <property name="text">
+        <string>Argumentos do servidor</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="serverArgumentsEdit"/>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="applicationUrlLabel">
+       <property name="text">
+        <string>URL do sistema</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="applicationUrlEdit"/>
+     </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="healthCheckUrlLabel">
+      <property name="text">
+       <string>URL de verificação de saúde (opcional)</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QLineEdit" name="healthCheckUrlEdit">
+      <property name="placeholderText">
+       <string>Ex.: http://127.0.0.1:8080/health</string>
+      </property>
+     </widget>
+    </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="restartOnFailureCheckBox">
+     <property name="text">
+      <string>Reiniciar o servidor automaticamente em caso de falha</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="restartDelayLayout">
+     <item>
+      <widget class="QLabel" name="restartDelayLabel">
+       <property name="text">
+        <string>Atraso antes de reiniciar (segundos)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="restartDelaySpinBox">
+       <property name="maximum">
+        <number>3600</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="restartDelaySpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="autoOpenBrowserCheckBox">
+     <property name="text">
+      <string>Abrir o sistema no navegador ao iniciar o backend</string>
+     </property>
+    </widget>
+   </item>
+    <item>
+     <widget class="QCheckBox" name="autoStartWithSystemCheckBox">
+      <property name="text">
+        <string>Iniciar o launcher automaticamente com o sistema</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCheckBox" name="enableAutoUpdateCheckBox">
+      <property name="text">
+        <string>Verificar atualizações do launcher ao iniciar</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QFormLayout" name="updateUrlLayout">
+      <item row="0" column="0">
+        <widget class="QLabel" name="updateVersionUrlLabel">
+         <property name="text">
+          <string>URL HTTPS da versão</string>
+         </property>
+        </widget>
+      </item>
+      <item row="0" column="1">
+        <widget class="QLineEdit" name="updateVersionUrlEdit"/>
+      </item>
+      <item row="1" column="0">
+        <widget class="QLabel" name="updateInstallerUrlLabel">
+         <property name="text">
+          <string>URL HTTPS do instalador</string>
+         </property>
+        </widget>
+      </item>
+      <item row="1" column="1">
+        <widget class="QLineEdit" name="updateInstallerUrlEdit"/>
+      </item>
+     </layout>
+    </item>
+   <item>
+    <spacer name="bottomSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Save</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

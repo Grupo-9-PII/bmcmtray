@@ -1,0 +1,19 @@
+Start testing: Oct 06 13:29 Hora oficial do Brasil
+----------------------------------------------------------
+1/1 Testing: launcher_runtime
+1/1 Test: launcher_runtime
+Command: "C:/Users/Usuario/Documents/BMCMTray/BMCMTrayLauncherQt/build-autostart/launcher_runtime_test.exe"
+Directory: C:/Users/Usuario/Documents/BMCMTray/BMCMTrayLauncherQt/build-autostart
+"launcher_runtime" start time: Oct 06 13:29 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Launcher configuration and backend process checks passed
+<end of output>
+Test time =   1.85 sec
+----------------------------------------------------------
+Test Passed.
+"launcher_runtime" end time: Oct 06 13:29 Hora oficial do Brasil
+"launcher_runtime" time elapsed: 00:00:01
+----------------------------------------------------------
+
+End testing: Oct 06 13:29 Hora oficial do Brasil

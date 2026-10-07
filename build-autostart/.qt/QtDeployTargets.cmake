@@ -1,0 +1,6 @@
+set(__QT_DEPLOY_TARGET_BMCMTrayLauncherQt_FILE C:/Users/Usuario/Documents/BMCMTray/BMCMTrayLauncherQt/build-autostart/BMCMTrayLauncherQt.exe)
+set(__QT_DEPLOY_TARGET_BMCMTrayLauncherQt_TYPE EXECUTABLE)
+set(__QT_DEPLOY_TARGET_BMCMTrayLauncherQt_RUNTIME_DLLS C:/Users/Usuario/AppData/Local/Programs/msys64/ucrt64/bin/Qt6Widgets.dll;C:/Users/Usuario/AppData/Local/Programs/msys64/ucrt64/bin/Qt6Network.dll;C:/Users/Usuario/AppData/Local/Programs/msys64/ucrt64/bin/Qt6Gui.dll;C:/Users/Usuario/AppData/Local/Programs/msys64/ucrt64/bin/Qt6Core.dll)
+set(__QT_DEPLOY_TARGET_launcher_runtime_test_FILE C:/Users/Usuario/Documents/BMCMTray/BMCMTrayLauncherQt/build-autostart/launcher_runtime_test.exe)
+set(__QT_DEPLOY_TARGET_launcher_runtime_test_TYPE EXECUTABLE)
+set(__QT_DEPLOY_TARGET_launcher_runtime_test_RUNTIME_DLLS C:/Users/Usuario/AppData/Local/Programs/msys64/ucrt64/bin/Qt6Network.dll;C:/Users/Usuario/AppData/Local/Programs/msys64/ucrt64/bin/Qt6Core.dll)
