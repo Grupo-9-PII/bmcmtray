@@ -5,6 +5,7 @@
 #include "settingsdialog.h"
 #include "ui_mainwindow.h"
 
+#include <QCoreApplication>
 #include <QDesktopServices>
 #include <QFile>
 #include <QIcon>
@@ -32,6 +33,16 @@ MainWindow::MainWindow(QWidget *parent)
     {
         ui_->logOutput->append(QStringLiteral("Falha ao carregar configuração: %1").arg(configError));
         ui_->statusLabel->setText(QStringLiteral("Configuração inválida; usando valores padrão"));
+    }
+    const QString previousUpdateError = LauncherReleaseUpdater::takePreviousUpdateError();
+    if (!previousUpdateError.isEmpty())
+    {
+        const QString message = tr("A atualização anterior do launcher não foi aplicada: %1").arg(previousUpdateError);
+        ui_->logOutput->append(message);
+        ui_->statusLabel->setText(tr("Falha ao aplicar atualização do launcher"));
+        QTimer::singleShot(0, this, [this, previousUpdateError]
+                           {
+            QMessageBox::warning(this, tr("Falha na atualização do launcher"), previousUpdateError); });
     }
     ui_->statusbar->showMessage(QStringLiteral("Configuração: %1").arg(configFilePath_));
 
@@ -82,6 +93,20 @@ MainWindow::MainWindow(QWidget *parent)
         restartTimer_.start(config_.restartDelaySeconds * 1000); });
     connect(&restartTimer_, &QTimer::timeout, this, &MainWindow::startBackend);
 
+    connect(&releaseUpdater_, &LauncherReleaseUpdater::statusChanged, this, [this](const QString &message)
+            {
+        ui_->statusbar->showMessage(message, 15000);
+        ui_->logOutput->append(message); });
+    connect(&releaseUpdater_, &LauncherReleaseUpdater::errorOccurred, this, [this](const QString &message)
+            {
+        ui_->logOutput->append(message);
+        ui_->statusbar->showMessage(message, 15000); });
+    connect(&releaseUpdater_, &LauncherReleaseUpdater::checkFinished, this, [this]
+            {
+        checkForLauncherUpdates();
+        checkForSystemUpdates(); });
+    connect(&releaseUpdater_, &LauncherReleaseUpdater::updateReadyToApply, this, &MainWindow::quitApplication);
+
     connect(&updater_, &LauncherUpdater::statusChanged, this, [this](const QString &message)
             { ui_->statusbar->showMessage(message, 10000); });
     connect(&updater_, &LauncherUpdater::errorOccurred, this, [this](const QString &message)
@@ -112,6 +137,26 @@ MainWindow::MainWindow(QWidget *parent)
             }
         } else {
             QFile::remove(filePath);
+        } });
+
+    connect(&systemUpdater_, &SystemRepositoryUpdater::statusChanged, this, [this](const QString &message)
+            {
+        ui_->statusLabel->setText(message);
+        ui_->statusbar->showMessage(message);
+        updateTrayStatus(message); });
+    connect(&systemUpdater_, &SystemRepositoryUpdater::finished, this, [this](bool success, bool, const QString &message)
+            {
+        systemUpdatePending_ = false;
+        updateProcessActions(backendController_.isRunning());
+        ui_->logOutput->append(message);
+        ui_->statusLabel->setText(message);
+        ui_->statusbar->showMessage(message, 15000);
+        updateTrayStatus(message);
+        if (!success && trayIcon_.isVisible())
+            trayIcon_.showMessage(tr("Atualização do SistemaBMCM"), message);
+        if (startAfterSystemUpdate_) {
+            startAfterSystemUpdate_ = false;
+            startBackend();
         } });
 
     connect(&readinessChecker_, &ReadinessChecker::checking, this, [this](const QString &message)
@@ -168,7 +213,10 @@ MainWindow::MainWindow(QWidget *parent)
         ui_->logOutput->append(tr("Bandeja do sistema indisponível; o launcher permanecerá na janela."));
 
     updateProcessActions(false);
-    QTimer::singleShot(0, this, &MainWindow::checkForLauncherUpdates);
+    QTimer::singleShot(0, this, [this]
+                       {
+        const QVersionNumber currentVersion(APP_VERSION_MAJOR, APP_VERSION_UPDATE, APP_VERSION_COUNT);
+        releaseUpdater_.checkForUpdate(currentVersion); });
 }
 
 MainWindow::~MainWindow() = default;
@@ -180,11 +228,14 @@ void MainWindow::startFromAutostart()
     else
         showNormal();
 
-    QTimer::singleShot(0, this, &MainWindow::startBackend);
+    startAfterSystemUpdate_ = true;
 }
 
 void MainWindow::startBackend()
 {
+    if (systemUpdatePending_)
+        return;
+
     restartTimer_.stop();
     userRequestedStop_ = false;
     updateProcessActions(false);
@@ -204,6 +255,9 @@ void MainWindow::stopBackend()
 
 void MainWindow::restartBackend()
 {
+    if (systemUpdatePending_)
+        return;
+
     restartTimer_.stop();
     userRequestedStop_ = true;
     if (backendController_.isRunning())
@@ -260,16 +314,21 @@ void MainWindow::checkForLauncherUpdates()
     updater_.checkForUpdate(config_.updateVersionUrl, config_.updateInstallerUrl, currentVersion);
 }
 
+void MainWindow::checkForSystemUpdates()
+{
+    systemUpdater_.checkAndUpdate(config_.workingDirectory, config_.systemRepositoryUrl, config_.systemUpdateMode);
+}
+
 void MainWindow::updateProcessActions(bool running)
 {
-    ui_->startButton->setEnabled(!running);
-    ui_->restartButton->setEnabled(running);
+    ui_->startButton->setEnabled(!running && !systemUpdatePending_);
+    ui_->restartButton->setEnabled(running && !systemUpdatePending_);
     ui_->stopButton->setEnabled(running);
     ui_->openSystemButton->setEnabled(!config_.applicationUrl.isEmpty());
     if (QAction *startAction = trayMenu_.findChild<QAction *>(QStringLiteral("trayStartAction")))
-        startAction->setEnabled(!running);
+        startAction->setEnabled(!running && !systemUpdatePending_);
     if (QAction *restartAction = trayMenu_.findChild<QAction *>(QStringLiteral("trayRestartAction")))
-        restartAction->setEnabled(running);
+        restartAction->setEnabled(running && !systemUpdatePending_);
     if (QAction *stopAction = trayMenu_.findChild<QAction *>(QStringLiteral("trayStopAction")))
         stopAction->setEnabled(running);
 }
@@ -293,6 +352,7 @@ void MainWindow::quitApplication()
     quitRequested_ = true;
     stopBackend();
     close();
+    QCoreApplication::quit();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

@@ -153,25 +153,28 @@ Não remova nem reutilize o projeto legado para outra finalidade durante o desen
 
 ## 11. Status atual da implementação
 
-Estado registrado em 2026-10-06: a nova implementação está na versão **1.1.7**, definida em `CMakeLists.txt` e refletida nas constantes geradas `APP_VERSION_MAJOR`, `APP_VERSION_UPDATE` e `APP_VERSION_COUNT`. O código C++/Qt permanece isolado em `BMCMTrayLauncherQt/`; o projeto legado continua em `../BMCMTrayLauncher/`.
+Estado registrado em 2026-10-12: a nova implementação está na versão **1.1.14**, definida em `CMakeLists.txt` e refletida nas constantes geradas `APP_VERSION_MAJOR`, `APP_VERSION_UPDATE` e `APP_VERSION_COUNT`. O código C++/Qt permanece isolado em `BMCMTrayLauncherQt/`; o projeto legado continua em `../BMCMTrayLauncher/`.
 
 ### Implementado
 
 - Aplicação C++17 com Qt 6 Widgets, formulários Qt Designer (`.ui`) e build CMake.
 - Carregamento e salvamento da configuração JSON no diretório de configuração do usuário, separado dos arquivos do backend.
-- Configuração do executável Python, diretório de trabalho, argumentos do servidor WSGI, URL do BMCM, endpoint de saúde opcional, política de reinício, abertura do navegador, autostart e atualização do launcher.
+- Configuração do executável Python, diretório de trabalho, URL do repositório GitHub do BMCM e modo de atualização (automático, clone Git ou ZIP), argumentos do servidor WSGI, URL do BMCM, endpoint de saúde opcional, política de reinício, abertura do navegador, autostart e atualização do launcher.
 - Inicialização, encerramento e reinicialização do processo Python/WSGI; captura da saída e dos erros; log persistente e reinício configurável após encerramento inesperado.
 - Ícone e menu de bandeja quando o ambiente oferece suporte; fechamento da janela oculta o launcher na bandeja, e a opção explícita “Sair” encerra o launcher e o backend.
 - Instância única, com ativação da instância já aberta quando uma segunda execução é iniciada.
 - Verificação HTTP opcional de prontidão. O status diferencia processo iniciado de BMCM pronto; quando configurada, a abertura automática do navegador aguarda uma resposta HTTP bem-sucedida.
 - Autostart no escopo do usuário implementado para Windows (Registro `HKCU`) e Linux (arquivo `.desktop` no diretório de autostart do usuário); quando acionado pelo sistema, o backend é iniciado e o launcher fica oculto na bandeja, se disponível.
 - Verificação de atualização opcional via HTTPS, comparação de versões no formato `principal.atualizacao.contagem` e confirmação do usuário antes de baixar e antes de abrir o instalador.
+- Verificação automática do repositório GitHub do SistemaBMCM, configurável no arquivo de configurações e pela tela **Configurar**; o modo automático usa Git em clones e ZIP em instalações sem clone. O modo Git aplica apenas atualizações fast-forward em clone sem alterações locais. O modo ZIP consulta o SHA da branch pela API do GitHub, baixa e extrai o arquivo da versão remota e sobrepõe arquivos da aplicação sem excluir arquivos locais; preserva `.env*`, `instance/`, ambientes virtuais, uploads e arquivos de banco de dados. Esses caminhos são excluídos já durante a extração, incluindo o `.venv` versionado no repositório e seus links simbólicos incompatíveis com o `tar` do Windows. Nenhum modo instala dependências.
+- Verificação automática de versões do launcher em GitHub Releases do repositório `Grupo-9-PII/bmcmtray`; no Windows, baixa o pacote portátil `BMCMTrayLauncherQt-windows-x64.zip`, aplica os arquivos depois que o launcher termina e inicia novamente o executável. A configuração da aplicação fica em AppData, fora da pasta do executável. O workflow de release compila e publica o pacote quando uma tag `vX.Y.Z` é criada.
 - Build Windows com GCC/MinGW, Qt, CMake e Ninja; implantação de DLLs Qt e MinGW junto ao executável.
 
 ### Validação realizada
 
 - Build e execução da versão Windows validados neste ambiente; o executável inicia sem depender do `PATH` do MSYS2.
-- Testes automatizados cobrem serialização da configuração, comparação de versões, lock de instância única, resposta e timeout da verificação HTTP e ciclo básico de execução de processo.
+- Testes automatizados cobrem serialização da configuração, comparação de versões, lock de instância única, resposta e timeout da verificação HTTP, ciclo básico de execução de processo e atualização fast-forward em um repositório Git local, com preservação do banco local e bloqueio de alterações locais e arquivos de banco versionados.
+- A atualização do SistemaBMCM valida o clone, o repositório remoto e a branch, e preserva arquivos locais ignorados pelo Git (incluindo `instance/`); o backend pode executar suas próprias migrações ao iniciar.
 - O build Linux, o autostart em uma sessão Linux real, a integração com um backend BMCM real e o fluxo real de download/instalação de atualização ainda não foram validados.
 
 ### Ainda planejado

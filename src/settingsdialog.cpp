@@ -4,6 +4,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QRegularExpression>
 #include <QUrl>
 
 SettingsDialog::SettingsDialog(const LauncherConfig &config, QWidget *parent)
@@ -13,6 +14,9 @@ SettingsDialog::SettingsDialog(const LauncherConfig &config, QWidget *parent)
     ui_->setupUi(this);
     ui_->pythonExecutableEdit->setText(config.pythonExecutable);
     ui_->workingDirectoryEdit->setText(config.workingDirectory);
+    ui_->systemRepositoryUrlEdit->setText(config.systemRepositoryUrl);
+    const int updateModeIndex = ui_->systemUpdateModeComboBox->findData(config.systemUpdateMode);
+    ui_->systemUpdateModeComboBox->setCurrentIndex(updateModeIndex >= 0 ? updateModeIndex : 0);
     ui_->serverArgumentsEdit->setText(config.serverArguments);
     ui_->applicationUrlEdit->setText(config.applicationUrl);
     ui_->healthCheckUrlEdit->setText(config.healthCheckUrl);
@@ -39,6 +43,8 @@ LauncherConfig SettingsDialog::config() const
     LauncherConfig result;
     result.pythonExecutable = ui_->pythonExecutableEdit->text().trimmed();
     result.workingDirectory = ui_->workingDirectoryEdit->text().trimmed();
+    result.systemRepositoryUrl = ui_->systemRepositoryUrlEdit->text().trimmed();
+    result.systemUpdateMode = ui_->systemUpdateModeComboBox->currentData().toString();
     result.serverArguments = ui_->serverArgumentsEdit->text().trimmed();
     result.applicationUrl = ui_->applicationUrlEdit->text().trimmed();
     result.healthCheckUrl = ui_->healthCheckUrlEdit->text().trimmed();
@@ -77,6 +83,29 @@ void SettingsDialog::validateAndAccept()
     if (values.pythonExecutable.isEmpty() || values.workingDirectory.isEmpty() || values.serverArguments.isEmpty())
     {
         QMessageBox::warning(this, tr("Configuração incompleta"), tr("Informe o Python, o diretório de trabalho e os argumentos do servidor."));
+        return;
+    }
+
+    const QUrl repositoryUrl(values.systemRepositoryUrl);
+    const QStringList repositoryPath = repositoryUrl.path().split(QLatin1Char('/'), Qt::SkipEmptyParts);
+    QString repositoryName = repositoryPath.value(1);
+    if (repositoryName.endsWith(QStringLiteral(".git"), Qt::CaseInsensitive))
+        repositoryName.chop(4);
+    const bool validRepositoryUrl =
+        repositoryUrl.isValid()
+        && repositoryUrl.scheme() == QStringLiteral("https")
+        && repositoryUrl.host().compare(QStringLiteral("github.com"), Qt::CaseInsensitive) == 0
+        && repositoryUrl.port(-1) == -1
+        && repositoryUrl.userInfo().isEmpty()
+        && repositoryUrl.query().isEmpty()
+        && repositoryUrl.fragment().isEmpty()
+        && repositoryPath.size() == 2
+        && repositoryPath.at(0).contains(QRegularExpression(QStringLiteral("^[A-Za-z0-9_.-]+$")))
+        && repositoryName.contains(QRegularExpression(QStringLiteral("^[A-Za-z0-9_.-]+$")));
+    if (!validRepositoryUrl)
+    {
+        QMessageBox::warning(this, tr("Repositório inválido"),
+                             tr("Informe a URL HTTPS de um repositório GitHub no formato https://github.com/organização/repositório."));
         return;
     }
 

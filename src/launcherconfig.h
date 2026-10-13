@@ -6,6 +6,8 @@ struct LauncherConfig
 {
     QString pythonExecutable;
     QString workingDirectory;
+    QString systemRepositoryUrl;
+    QString systemUpdateMode;
     QString serverArguments;
     QString applicationUrl;
     QString healthCheckUrl;

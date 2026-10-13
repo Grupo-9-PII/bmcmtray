@@ -27,7 +27,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 atualização do Git
 
 git add .
-git commit -m "inclusão de novos campos data de MAtricula  e data de desligamento da banda"
+git commit -m "Segundo Commit"
 git branch -M main
 git push -u origin main
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(BMCMTrayLauncherQt VERSION 1.1.7 LANGUAGES CXX)
+project(BMCMTrayLauncherQt VERSION 1.1.14 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,6 +28,8 @@ set(LAUNCHER_SOURCES
     src/backendcontroller.h
     src/launcherconfig.cpp
     src/launcherconfig.h
+    src/launcherreleaseupdater.cpp
+    src/launcherreleaseupdater.h
     src/launcherupdater.cpp
     src/launcherupdater.h
     src/main.cpp
@@ -35,6 +37,8 @@ set(LAUNCHER_SOURCES
     src/mainwindow.h
     src/readinesschecker.cpp
     src/readinesschecker.h
+    src/systemrepositoryupdater.cpp
+    src/systemrepositoryupdater.h
     src/settingsdialog.cpp
     src/settingsdialog.h
     src/ui/mainwindow.ui
@@ -70,10 +74,14 @@ if(BUILD_TESTING)
         src/backendcontroller.h
         src/launcherconfig.cpp
         src/launcherconfig.h
+        src/launcherreleaseupdater.cpp
+        src/launcherreleaseupdater.h
         src/launcherupdater.cpp
         src/launcherupdater.h
         src/readinesschecker.cpp
         src/readinesschecker.h
+        src/systemrepositoryupdater.cpp
+        src/systemrepositoryupdater.h
     )
     target_include_directories(launcher_runtime_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
     target_link_libraries(launcher_runtime_test PRIVATE Qt6::Core Qt6::Network)

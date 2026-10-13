@@ -12,6 +12,8 @@ LauncherConfig LauncherConfig::defaults()
     LauncherConfig config;
     config.pythonExecutable = QStringLiteral("python");
     config.workingDirectory = QDir::homePath();
+    config.systemRepositoryUrl = QStringLiteral("https://github.com/Grupo-9-PII/sistemaBMCM-II");
+    config.systemUpdateMode = QStringLiteral("auto");
     config.applicationUrl = QStringLiteral("http://127.0.0.1:8080");
 
 #ifdef Q_OS_WIN
@@ -52,6 +54,14 @@ LauncherConfig LauncherConfig::load(const QString &filePath, QString *errorMessa
     LauncherConfig config = defaults();
     config.pythonExecutable = object.value(QStringLiteral("PythonExePath")).toString(config.pythonExecutable);
     config.workingDirectory = object.value(QStringLiteral("WorkingDirectory")).toString(config.workingDirectory);
+    config.systemRepositoryUrl = object.value(QStringLiteral("SystemRepositoryUrl"))
+                                     .toString(config.systemRepositoryUrl);
+    config.systemUpdateMode = object.value(QStringLiteral("SystemUpdateMode"))
+                                  .toString(config.systemUpdateMode);
+    if (config.systemUpdateMode != QStringLiteral("auto")
+        && config.systemUpdateMode != QStringLiteral("git")
+        && config.systemUpdateMode != QStringLiteral("archive"))
+        config.systemUpdateMode = QStringLiteral("auto");
     config.serverArguments = object.value(QStringLiteral("ServerArguments"))
                                  .toString(object.value(QStringLiteral("WaitressArguments"))
                                                .toString(config.serverArguments));
@@ -83,6 +93,8 @@ bool LauncherConfig::save(const QString &filePath, QString *errorMessage) const
     QJsonObject object;
     object.insert(QStringLiteral("PythonExePath"), pythonExecutable);
     object.insert(QStringLiteral("WorkingDirectory"), workingDirectory);
+    object.insert(QStringLiteral("SystemRepositoryUrl"), systemRepositoryUrl);
+    object.insert(QStringLiteral("SystemUpdateMode"), systemUpdateMode);
     object.insert(QStringLiteral("ServerArguments"), serverArguments);
     object.insert(QStringLiteral("ApplicationUrl"), applicationUrl);
     object.insert(QStringLiteral("HealthCheckUrl"), healthCheckUrl);

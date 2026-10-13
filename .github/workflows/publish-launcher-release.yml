@@ -1,0 +1,64 @@
+name: Publish launcher release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-2022
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Qt
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade aqtinstall
+          aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 --outputdir C:\Qt
+          'C:\Qt\6.8.3\msvc2022_64\bin' | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Configure
+        shell: pwsh
+        run: cmake -S . -B build -DCMAKE_PREFIX_PATH="C:\Qt\6.8.3\msvc2022_64"
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Package portable launcher
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path CMakeLists.txt -Pattern 'project\(BMCMTrayLauncherQt VERSION ([0-9]+\.[0-9]+\.[0-9]+)' ).Matches.Groups[1].Value
+          if ($env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Release tag $env:GITHUB_REF_NAME does not match CMake version $version."
+          }
+          $payload = Join-Path $env:RUNNER_TEMP 'launcher-package'
+          New-Item -ItemType Directory -Path $payload -Force | Out-Null
+          Copy-Item -LiteralPath 'build\Release\BMCMTrayLauncherQt.exe' -Destination $payload
+          Copy-Item -Path 'build\Release\*.dll' -Destination $payload
+          foreach ($pluginDirectory in @('generic', 'imageformats', 'networkinformation', 'platforms', 'styles', 'tls')) {
+            $pluginPath = Join-Path 'build\Release' $pluginDirectory
+            if (Test-Path -LiteralPath $pluginPath -PathType Container) {
+              Copy-Item -LiteralPath $pluginPath -Destination $payload -Recurse
+            }
+          }
+          $package = Join-Path $env:RUNNER_TEMP 'BMCMTrayLauncherQt-windows-x64.zip'
+          Compress-Archive -Path (Join-Path $payload '*') -DestinationPath $package -CompressionLevel Optimal
+          "PACKAGE_PATH=$package" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "$env:GITHUB_REF_NAME" "$env:PACKAGE_PATH" --title "$env:GITHUB_REF_NAME" --generate-notes
