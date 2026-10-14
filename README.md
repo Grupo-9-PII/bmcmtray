@@ -21,6 +21,32 @@ ctest --test-dir build --output-on-failure
 
 No MSYS2 Windows, execute os comandos em um terminal UCRT64 para que o CMake encontre o compilador GCC e o Qt instalados nesse ambiente. No Linux, instale os pacotes de desenvolvimento do Qt 6 Widgets e Network, CMake, Ninja e um compilador C++ antes de configurar o projeto.
 
+### Linux e pacote Debian
+
+Em Debian/Ubuntu, instale as ferramentas de compilação e o Qt 6:
+
+```sh
+sudo apt update
+sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-base-dev-tools dpkg-dev
+```
+
+Compile, teste e gere o pacote `.deb`:
+
+```sh
+cmake -S . -B build-linux -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build-linux
+ctest --test-dir build-linux --output-on-failure
+cpack --config build-linux/CPackConfig.cmake -G DEB
+```
+
+O pacote instala o executável em `/usr/bin`, o atalho do menu em `/usr/share/applications` e o ícone em `/usr/share/pixmaps`. As dependências compartilhadas são calculadas no empacotamento pelo CPack/`dpkg-shlibdeps`. Instale o pacote gerado com:
+
+```sh
+sudo apt install ./build-linux/bmcm-tray-launcher-qt_1.1.15_*.deb
+```
+
+O sufixo da arquitetura do pacote é determinado pelo CPack. O autostart por usuário grava um arquivo `.desktop` em `$XDG_CONFIG_HOME/autostart` (ou `~/.config/autostart`) e usa `--autostart`; desative-o pela tela **Configurar** antes de desinstalar o pacote, se não quiser manter essa entrada.
+
 No Windows, o passo de build executa `windeployqt` e, com MinGW/MSYS2, `ntldd` para copiar as DLLs transitivas do Qt e do runtime do compilador para junto do executável em `build/`. Instale também o pacote `mingw-w64-ucrt-x86_64-ntldd` no ambiente UCRT64 do MSYS2.
 
 ## Instalar o `tar` para atualizações ZIP

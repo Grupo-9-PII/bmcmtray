@@ -1,5 +1,10 @@
 # Histórico de alterações
 
+## 1.1.15 - 2026-10-13
+
+- Implementado o empacotamento Debian com dependências dinâmicas, ícone e atalho do aplicativo.
+- Tornado o autostart Linux atômico, validado e coberto por teste de criação, permissões e remoção do arquivo `.desktop`.
+
 ## 1.1.14 - 2026-10-12
 
 - Adicionada atualização automática do launcher por GitHub Releases, com aplicação do pacote portátil após o encerramento e reinício do processo.

@@ -13,6 +13,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QEventLoop>
+#include <QFileInfo>
 #include <QHostAddress>
 #include <QProcess>
 #include <QStandardPaths>
@@ -86,6 +87,43 @@ int main(int argc, char *argv[])
         std::cerr << "Could not create temporary test directory\n";
         return 1;
     }
+
+#ifdef Q_OS_LINUX
+    qputenv("XDG_CONFIG_HOME", temporaryDirectory.filePath(QStringLiteral("xdg-config")).toLocal8Bit());
+    QString autostartError;
+    if (!AutostartManager::setEnabled(true, &autostartError))
+    {
+        std::cerr << "Could not enable Linux autostart: " << autostartError.toStdString() << '\n';
+        return 1;
+    }
+
+    const QString autostartPath = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
+                                  + QStringLiteral("/autostart/bmcm-tray-launcher-qt.desktop");
+    QFile autostartFile(autostartPath);
+    if (!AutostartManager::isEnabled(&autostartError) || !autostartFile.open(QIODevice::ReadOnly))
+    {
+        std::cerr << "Linux autostart entry was not created\n";
+        return 1;
+    }
+    const QByteArray autostartContents = autostartFile.readAll();
+    if (!autostartContents.contains("Exec=\"") || !autostartContents.contains("--autostart")
+        || !(QFileInfo(autostartPath).permissions() & QFile::ExeOwner))
+    {
+        std::cerr << "Linux autostart entry content or permissions are invalid\n";
+        return 1;
+    }
+    if (!AutostartManager::setEnabled(false, &autostartError) || AutostartManager::isEnabled(&autostartError))
+    {
+        std::cerr << "Could not disable Linux autostart\n";
+        return 1;
+    }
+
+    if (!LauncherConfig::defaults().serverArguments.contains(QStringLiteral("gunicorn")))
+    {
+        std::cerr << "Linux default WSGI server is not Gunicorn\n";
+        return 1;
+    }
+#endif
 
     LauncherConfig expected = LauncherConfig::defaults();
     expected.pythonExecutable = QStringLiteral(TEST_CMAKE_EXECUTABLE);

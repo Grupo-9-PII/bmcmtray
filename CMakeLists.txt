@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(BMCMTrayLauncherQt VERSION 1.1.14 LANGUAGES CXX)
+project(BMCMTrayLauncherQt VERSION 1.1.15 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -49,6 +49,11 @@ if(WIN32)
     add_executable(${PROJECT_NAME} WIN32 ${LAUNCHER_SOURCES})
 else()
     add_executable(${PROJECT_NAME} ${LAUNCHER_SOURCES})
+endif()
+
+target_sources(${PROJECT_NAME} PRIVATE recursos.qrc)
+if(WIN32)
+    target_sources(${PROJECT_NAME} PRIVATE recurso.rc)
 endif()
 
 target_include_directories(${PROJECT_NAME}
@@ -126,7 +131,46 @@ if(WIN32)
     endif()
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE)
+endif()
+
 install(TARGETS ${PROJECT_NAME}
     BUNDLE DESTINATION .
     RUNTIME DESTINATION bin
 )
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/bmcm-tray-launcher-qt.desktop"
+        DESTINATION share/applications)
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/app.png"
+        DESTINATION share/pixmaps
+        RENAME bmcm-tray-launcher-qt.png)
+    install(CODE [[
+        file(CHMOD
+            "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}"
+            "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin"
+            "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share"
+            "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/applications"
+            "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/pixmaps"
+            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                        GROUP_READ GROUP_EXECUTE
+                        WORLD_READ WORLD_EXECUTE)
+    ]])
+
+    set(CPACK_PACKAGE_NAME "bmcm-tray-launcher-qt")
+    set(CPACK_PACKAGE_VENDOR "BMCM")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Launcher para execução e monitoramento do BMCM")
+    set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "BMCM")
+    set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
+    set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "qt6-qpa-plugins")
+    set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+    set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}")
+    include(CPack)
+endif()

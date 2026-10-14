@@ -2,6 +2,7 @@
 #include "applicationinstance.h"
 
 #include <QApplication>
+#include <QIcon>
 #include <QMessageBox>
 
 int main(int argc, char *argv[])
@@ -9,6 +10,8 @@ int main(int argc, char *argv[])
     QApplication application(argc, argv);
     QCoreApplication::setApplicationName("BMCM Tray Launcher");
     QCoreApplication::setOrganizationName("BMCM");
+    // O prefixo ":/" indica que o arquivo está embutido no arquivo de recursos (.qrc)
+    application.setWindowIcon(QIcon(":/app.png"));
 
     ApplicationInstance instance;
     if (!instance.acquire())

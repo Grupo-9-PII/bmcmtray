@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QSettings>
+#include <QSaveFile>
 #include <QStandardPaths>
 
 #ifdef Q_OS_WIN
@@ -30,6 +31,7 @@ namespace
         value.replace(QLatin1Char('"'), QStringLiteral("\\\""));
         value.replace(QLatin1Char('$'), QStringLiteral("\\$"));
         value.replace(QLatin1Char('`'), QStringLiteral("\\`"));
+        value.replace(QLatin1Char('%'), QStringLiteral("%%"));
         return QStringLiteral("\"") + value + QStringLiteral("\"");
     }
 }
@@ -100,7 +102,7 @@ bool AutostartManager::setEnabled(bool enabled, QString *errorMessage)
         return false;
     }
 
-    QFile file(path);
+    QSaveFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
     {
         if (errorMessage)
@@ -108,15 +110,46 @@ bool AutostartManager::setEnabled(bool enabled, QString *errorMessage)
         return false;
     }
 
+    const QString executablePath = QFileInfo(QCoreApplication::applicationFilePath()).absoluteFilePath();
+    if (!QFileInfo(executablePath).isExecutable())
+    {
+        if (errorMessage)
+            *errorMessage = QStringLiteral("O executável do launcher não existe ou não pode ser executado: %1")
+                                .arg(executablePath);
+        return false;
+    }
+
     const QString desktopEntry = QStringLiteral(
                                      "[Desktop Entry]\n"
                                      "Type=Application\n"
+                                     "Version=1.0\n"
                                      "Name=BMCM Tray Launcher\n"
-                                    "Exec=%1 --autostart\n"
+                                     "Comment=Inicia o launcher BMCM com o sistema.\n"
+                                     "Exec=%1 --autostart\n"
                                      "Terminal=false\n"
+                                     "NoDisplay=true\n"
+                                     "StartupNotify=false\n"
                                      "X-GNOME-Autostart-enabled=true\n")
-                                     .arg(desktopExecValue(QCoreApplication::applicationFilePath()));
-    if (file.write(desktopEntry.toUtf8()) < 0)
+                                     .arg(desktopExecValue(executablePath));
+    const QByteArray contents = desktopEntry.toUtf8();
+    if (file.write(contents) != contents.size())
+    {
+        if (errorMessage)
+            *errorMessage = file.errorString();
+        return false;
+    }
+
+    const QFile::Permissions permissions = QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner
+                                          | QFile::ReadGroup | QFile::ExeGroup
+                                          | QFile::ReadOther | QFile::ExeOther;
+    if (!file.setPermissions(permissions))
+    {
+        if (errorMessage)
+            *errorMessage = QStringLiteral("Não foi possível ajustar as permissões do atalho de autostart: %1")
+                                .arg(path);
+        return false;
+    }
+    if (!file.commit())
     {
         if (errorMessage)
             *errorMessage = file.errorString();

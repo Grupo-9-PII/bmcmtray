@@ -153,7 +153,7 @@ Não remova nem reutilize o projeto legado para outra finalidade durante o desen
 
 ## 11. Status atual da implementação
 
-Estado registrado em 2026-10-12: a nova implementação está na versão **1.1.14**, definida em `CMakeLists.txt` e refletida nas constantes geradas `APP_VERSION_MAJOR`, `APP_VERSION_UPDATE` e `APP_VERSION_COUNT`. O código C++/Qt permanece isolado em `BMCMTrayLauncherQt/`; o projeto legado continua em `../BMCMTrayLauncher/`.
+Estado registrado em 2026-10-13: a nova implementação está na versão **1.1.15**, definida em `CMakeLists.txt` e refletida nas constantes geradas `APP_VERSION_MAJOR`, `APP_VERSION_UPDATE` e `APP_VERSION_COUNT`. O código C++/Qt permanece isolado em `BMCMTrayLauncherQt/`; o projeto legado continua em `../BMCMTrayLauncher/`.
 
 ### Implementado
 
@@ -169,20 +169,23 @@ Estado registrado em 2026-10-12: a nova implementação está na versão **1.1.1
 - Verificação automática do repositório GitHub do SistemaBMCM, configurável no arquivo de configurações e pela tela **Configurar**; o modo automático usa Git em clones e ZIP em instalações sem clone. O modo Git aplica apenas atualizações fast-forward em clone sem alterações locais. O modo ZIP consulta o SHA da branch pela API do GitHub, baixa e extrai o arquivo da versão remota e sobrepõe arquivos da aplicação sem excluir arquivos locais; preserva `.env*`, `instance/`, ambientes virtuais, uploads e arquivos de banco de dados. Esses caminhos são excluídos já durante a extração, incluindo o `.venv` versionado no repositório e seus links simbólicos incompatíveis com o `tar` do Windows. Nenhum modo instala dependências.
 - Verificação automática de versões do launcher em GitHub Releases do repositório `Grupo-9-PII/bmcmtray`; no Windows, baixa o pacote portátil `BMCMTrayLauncherQt-windows-x64.zip`, aplica os arquivos depois que o launcher termina e inicia novamente o executável. A configuração da aplicação fica em AppData, fora da pasta do executável. O workflow de release compila e publica o pacote quando uma tag `vX.Y.Z` é criada.
 - Build Windows com GCC/MinGW, Qt, CMake e Ninja; implantação de DLLs Qt e MinGW junto ao executável.
+- Empacotamento Linux em `.deb` via CPack, com dependências compartilhadas detectadas, executável, ícone e entrada para o menu de aplicativos.
+- Autostart Linux no escopo do usuário via arquivo `.desktop` XDG, gravado atomicamente, com permissões de execução e suporte a caminhos de executável com espaços e caracteres especiais.
 
 ### Validação realizada
 
 - Build e execução da versão Windows validados neste ambiente; o executável inicia sem depender do `PATH` do MSYS2.
 - Testes automatizados cobrem serialização da configuração, comparação de versões, lock de instância única, resposta e timeout da verificação HTTP, ciclo básico de execução de processo e atualização fast-forward em um repositório Git local, com preservação do banco local e bloqueio de alterações locais e arquivos de banco versionados.
 - A atualização do SistemaBMCM valida o clone, o repositório remoto e a branch, e preserva arquivos locais ignorados pelo Git (incluindo `instance/`); o backend pode executar suas próprias migrações ao iniciar.
-- O build Linux, o autostart em uma sessão Linux real, a integração com um backend BMCM real e o fluxo real de download/instalação de atualização ainda não foram validados.
+- Build Linux com Qt 6.4.2 validado; o teste automatizado de runtime cobre criação, conteúdo, permissões e remoção do arquivo de autostart, e o pacote Debian foi gerado e inspecionado.
+- A integração do autostart e da bandeja em uma sessão Linux real, a integração com um backend BMCM real e o fluxo real de download/instalação de atualização ainda não foram validados.
 
 ### Ainda planejado
 
 - Inspecionar o Python/`venv` configurado e comparar as dependências instaladas com o `requirements.txt` do BMCM.
 - Apresentar divergências de dependências e oferecer reparo/atualização somente após confirmação explícita, coordenando a parada e a reinicialização do servidor.
 - Acrescentar um teste operacional dedicado que valide a configuração e a inicialização do servidor sem assumir que o processo está saudável apenas por permanecer ativo.
-- Validar build, empacotamento, autostart, bandeja e ciclo de processos em Linux. macOS continua sendo uma possibilidade futura, fora dos alvos iniciais.
+- Validar autostart, bandeja e ciclo de processos em uma sessão Linux real. macOS continua sendo uma possibilidade futura, fora dos alvos iniciais.
 
 Ao abrir manualmente, o launcher não inicia automaticamente o backend; o usuário inicia o servidor pelos controles da janela ou da bandeja. Quando o autostart do sistema está habilitado, a entrada de inicialização usa `--autostart`, que inicia o backend e oculta a janela se houver bandeja disponível. Se não houver bandeja, a janela permanece visível para permitir controle e diagnóstico.
 

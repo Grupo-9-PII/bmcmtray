@@ -27,7 +27,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 atualização do Git
 
 git add .
-git commit -m "Segundo Commit"
+git commit -m "Versão com fun"
 git branch -M main
 git push -u origin main
 

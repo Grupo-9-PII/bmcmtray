@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=BMCM Tray Launcher
+Comment=Auxiliar de execução e monitoramento do BMCM
+Exec=BMCMTrayLauncherQt
+Icon=bmcm-tray-launcher-qt
+Terminal=false
+Categories=Utility;Network;
+StartupNotify=true
